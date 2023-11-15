@@ -4,8 +4,9 @@ pragma solidity =0.8.19;
 import "forge-std/Test.sol";
 import "./Utils.sol";
 import "rain.math.fixedpoint/lib/LibFixedPointDecimalArithmeticOpenZeppelin.sol";
+
 contract CouponMintTest is Test, Utils {
-    
+    using LibFixedPointDecimalArithmeticOpenZeppelin for uint256;
     IFlowERC20V4 flow;
     Evaluable evaluable;
 
@@ -62,30 +63,31 @@ contract CouponMintTest is Test, Utils {
         
 
         address broker = makeAddr("broker");
-        uint256 price = 1 ether;
+        uint256 price = 36800e18;
         address btc = makeAddr("btc");
 
-        uint256 fakeBid = price + (price / 1000);
+        uint256 fakeBid = 30000e18;
         // uint256 fakeAsk = price - (price / 100000);
 
-        uint256 amountLimit = 10000000000000000000;
-        uint256 buyAmount = amountLimit * 2;
+        uint256 amountLimit = 10e18 * price;
+        uint256 buyAmount = 10e18;
 
 
-        uint256 askprice = buyAmount / fakeBid;
-        uint256 tradeAmount = amountLimit * fakeBid;
-        uint256 outputSize = tradeAmount / fakeBid;
+        uint256 askprice = buyAmount.fixedPointDiv(fakeBid, Math.Rounding.Down);
+        uint256 tradeAmount = buyAmount;
+        uint256 outputSize = tradeAmount.fixedPointDiv(fakeBid, Math.Rounding.Down);
         
-        console2.log("askprice", askprice);
-        console2.log("amountLimit", amountLimit);
         console2.log("buyAmount", buyAmount);
+        console2.log("fakeBid", fakeBid);
+        console2.log("amountLimit", amountLimit);
+        console2.log("askprice", askprice);
         console2.log("tradeAmount", tradeAmount);
         console2.log("outputSize", outputSize);
 
         uint256[] memory context = new uint256[](5);
         context[0] = uint256(keccak256(abi.encode(address(usdc), btc, orderbook)));
         context[1] = uint256(uint160(broker));
-        context[2] = 10000000000000000000; // buy max limit
+        context[2] = amountLimit; // buy max limit
         context[3] = fakeBid;
         context[4] = couponExpiry;
 
@@ -102,7 +104,7 @@ contract CouponMintTest is Test, Utils {
         usdc.approve(address(flow), tradeAmount);
         flow.flow(evaluable, callerContext, signedContext);
         vm.stopPrank();
-        assertEq(usdc.balanceOf(broker), tradeAmount);
+        assertEq(usdc.balanceOf(broker), buyAmount);
         assertEq(IERC20(address(flow)).balanceOf(alice), outputSize);
     }
 }

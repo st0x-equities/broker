@@ -47,17 +47,17 @@ bytes constant CONDITIONS =
     // ":ensure<3>(less-than(input-amount amount-limit)),"; // check if input amount is less than buy limit
 
 bytes constant TRANSFERS = 
-    "asked-amount: int-div(input-amount io-ratio),"
-    "condition: less-than(int-add(asked-amount get(volume-record-key)) amount-limit),"
-    "trade-amount: if(condition input-amount int-div(int-sub(amount-limit get(volume-record-key)) io-ratio)),"
+    "asked-amount: decimal18-div(input-amount io-ratio),"
+    "condition: less-than(decimal18-add(asked-amount get(volume-record-key)) amount-limit),"
+    "trade-amount: if(condition input-amount decimal18-div(decimal18-sub(amount-limit get(volume-record-key)) io-ratio)),"
     // if input amount is less than buy limit, then trade input amount, else trade buy limit - volume record
-    "output-size: int-div(trade-amount io-ratio)," // calculate output amount
+    "output-size: decimal18-div(trade-amount io-ratio)," // calculate output amount
     "transfererc1155slist: sentinel," "transfererc721slist: sentinel," "transfererc20slist: sentinel,"
     "_ _ _ _: usdt caller broker trade-amount," // transfer usdt from caller to broker
     "burnslist: sentinel," "mintslist: sentinel," // burn and mint sentinels
     "_ _: caller output-size,"; // mint flow20 to caller
 
-bytes constant POST_TRANSFERS = ":set(volume-record-key int-add(get(volume-record-key) trade-amount));"; // update volume record
+bytes constant POST_TRANSFERS = ":set(volume-record-key decimal18-add(get(volume-record-key) trade-amount));"; // update volume record
 
 function getFlowScript() pure returns (bytes memory) {
     return bytes.concat(PRELUDE, SIGNED_CONTEXT, CALLER_CONTEXT, CONDITIONS, TRANSFERS, POST_TRANSFERS);
