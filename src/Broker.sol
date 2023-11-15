@@ -43,16 +43,15 @@ bytes constant CALLER_CONTEXT = "input-token: context<1 0>()," // taking input t
 bytes constant CONDITIONS = 
     ":ensure<0>(equal-to(signer expected-signer))," // check if context is signed by signer-address
     ":ensure<1>(equal-to(coupon-domain-seperator hash(input-token output-token ob)))," // check if coupon-domain-seperator is valid
-    ":ensure<2>(less-than(block-timestamp() coupon-expiry))," // check if coupon is not expired
-    ":ensure<3>(less-than(input-amount amount-limit)),"; // check if input amount is less than buy limit
+    ":ensure<2>(less-than(block-timestamp() coupon-expiry)),"; // check if coupon is not expired
+    // ":ensure<3>(less-than(input-amount amount-limit)),"; // check if input amount is less than buy limit
 
 bytes constant TRANSFERS = 
-    "asked-amount: int-mul(input-amount io-ratio),"
+    "asked-amount: int-div(input-amount io-ratio),"
     "condition: less-than(int-add(asked-amount get(volume-record-key)) amount-limit),"
-    // "trade-amount: input-amount,"
     "trade-amount: if(condition input-amount int-div(int-sub(amount-limit get(volume-record-key)) io-ratio)),"
     // if input amount is less than buy limit, then trade input amount, else trade buy limit - volume record
-    "output-size: int-mul(io-ratio trade-amount)," // calculate output amount
+    "output-size: int-div(trade-amount io-ratio)," // calculate output amount
     "transfererc1155slist: sentinel," "transfererc721slist: sentinel," "transfererc20slist: sentinel,"
     "_ _ _ _: usdt caller broker trade-amount," // transfer usdt from caller to broker
     "burnslist: sentinel," "mintslist: sentinel," // burn and mint sentinels
