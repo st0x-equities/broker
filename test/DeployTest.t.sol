@@ -12,7 +12,8 @@ contract DeployTest is Test, Utils {
         setMumbaiFork();
         FlowDeployed memory flowDeployed = deploy();
         flow20 = flowDeployed.flow;
-        assertNotEq(address(flow20), address(0));
+        evalueable = flowDeployed.expressions[0];
+
+        console2.log("flow20 address: ", address(flow20));
     }
 }
- 

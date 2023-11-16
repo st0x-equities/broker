@@ -8,7 +8,6 @@ import "rain.flow/interface/unstable/IFlowERC20V4.sol";
 import "rain.interpreter/src/interface/unstable/IParserV1.sol";
 import "rain.interpreter/src/interface/unstable/IExpressionDeployerV2.sol";
 import {ECDSAUpgradeable as ECDSA} from "openzeppelin/utils/cryptography/ECDSAUpgradeable.sol";
-import {IERC20Upgradeable as IERC20} from  "openzeppelin/interfaces/IERC20Upgradeable.sol";
 
 struct FlowDeployed {
     IFlowERC20V4 flow;
@@ -21,9 +20,6 @@ contract Utils is Test {
         uint256 fork = vm.createFork(mumbaiRPCURL);
         vm.selectFork(fork);
         vm.rollFork(42249360);
-        vm.label(address(usdc), "usdc");
-        vm.label(couponSigner, "couponSigner");
-        vm.label(orderbook, "orderbook");
     }
 
     function deploy() public returns (FlowDeployed memory) {
@@ -40,7 +36,6 @@ contract Utils is Test {
 
         vm.recordLogs();
         address flow20 = factory.clone(implementation, abi.encode(config));
-        vm.label(flow20, "flow20");
 
         Vm.Log[] memory logs = vm.getRecordedLogs();
         (, Evaluable memory evalueable) = abi.decode(getFlowInitializedEvent(logs, 0).data, (address, Evaluable));
