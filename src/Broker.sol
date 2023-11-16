@@ -20,12 +20,10 @@ address constant couponSigner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
 uint256 constant couponSignerKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
 
-address constant orderbook = 0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD;
-
 bytes constant PRELUDE = "sentinel: 115183058774379759847873638693462432260838474092724525396123647190314935293775," // sentinel value
     "caller: context<0 0>()," // caller address
     "signer: context<2 0>()," // signer address
-    "ob: 0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD," // orderbook address
+    "ob: 0xbbbbca6a901c926f240b89eacb641d8aec7aeafd," // orderbook address
     "expected-signer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266," // expected signer address
     "usdt: 0xC06A96B36c89D2b37d8635e6Ef5fF518A2BC5cE9,"; // usdt address"
 
@@ -40,24 +38,21 @@ bytes constant CALLER_CONTEXT = "input-token: context<1 0>()," // taking input t
     "output-token: context<1 2>()," // taking output token from signedContext
     "volume-record-key: hash(coupon-domain-seperator coupon-expiry),"; // key for volume record
 
-bytes constant CONDITIONS = 
-    ":ensure<0>(equal-to(signer expected-signer))," // check if context is signed by signer-address
+bytes constant CONDITIONS = ":ensure<0>(equal-to(signer expected-signer))," // check if context is signed by signer-address
     ":ensure<1>(equal-to(coupon-domain-seperator hash(input-token output-token ob)))," // check if coupon-domain-seperator is valid
-    ":ensure<2>(less-than(block-timestamp() coupon-expiry)),"; // check if coupon is not expired
-    // ":ensure<3>(less-than(input-amount amount-limit)),"; // check if input amount is less than buy limit
+    ":ensure<2>(less-than(block-timestamp() coupon-expiry))," // check if coupon is not expired
+    ":ensure<3>(less-than(input-amount amount-limit)),"; // check if input amount is less than buy limit
 
-bytes constant TRANSFERS = 
-    "asked-amount: decimal18-div(input-amount io-ratio),"
-    "condition: less-than(decimal18-add(asked-amount get(volume-record-key)) amount-limit),"
-    "trade-amount: if(condition input-amount decimal18-div(decimal18-sub(amount-limit get(volume-record-key)) io-ratio)),"
+bytes constant TRANSFERS = "condition: less-than(int-add(input-amount get(volume-record-key)) amount-limit),"
+    "trade-amount: if(condition input-amount int-sub(amount-limit get(volume-record-key))),"
     // if input amount is less than buy limit, then trade input amount, else trade buy limit - volume record
-    "output-size: decimal18-div(trade-amount io-ratio)," // calculate output amount
+    "output-size: int-mul(io-ratio trade-amount)," // calculate output amount
     "transfererc1155slist: sentinel," "transfererc721slist: sentinel," "transfererc20slist: sentinel,"
     "_ _ _ _: usdt caller broker trade-amount," // transfer usdt from caller to broker
     "burnslist: sentinel," "mintslist: sentinel," // burn and mint sentinels
     "_ _: caller output-size,"; // mint flow20 to caller
 
-bytes constant POST_TRANSFERS = ":set(volume-record-key decimal18-add(get(volume-record-key) trade-amount));"; // update volume record
+bytes constant POST_TRANSFERS = ":set(volume-record-key int-add(get(volume-record-key) trade-amount));"; // update volume record
 
 function getFlowScript() pure returns (bytes memory) {
     return bytes.concat(PRELUDE, SIGNED_CONTEXT, CALLER_CONTEXT, CONDITIONS, TRANSFERS, POST_TRANSFERS);
