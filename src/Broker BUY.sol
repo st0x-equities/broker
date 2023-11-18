@@ -45,8 +45,8 @@ bytes constant CALLER_CONTEXT = "input-token: context<1 0>()," // taking input t
 bytes constant CONDITIONS = 
     ":ensure<0>(equal-to(signer expected-signer))," // check if context is signed by signer-address
     ":ensure<1>(equal-to(coupon-domain-seperator hash(input-token output-token ob)))," // check if coupon-domain-seperator is valid
-    ":ensure<2>(less-than(block-timestamp() coupon-expiry)),"; // check if coupon is not expired
-    // ":ensure<3>(less-than(input-amount amount-limit)),"; // check if input amount is less than buy limit
+    ":ensure<2>(less-than(block-timestamp() coupon-expiry))," // check if coupon is not expired
+    ":ensure<3>(less-than(get(volume-record-key) amount-limit)),"; // check if volume record is less than amount limit
 
 bytes constant TRANSFERS = 
     "asked-amount: decimal18-div(input-amount io-ratio),"
@@ -57,8 +57,8 @@ bytes constant TRANSFERS =
     "trade-amount-post-fee: decmial18-mul(trade-amount 998000000000000000),"// calculates the trade amount without the fee
     "output-size: decimal18-div(trade-amount-post-fee io-ratio)," // calculate output amount
     "transfererc1155slist: sentinel," "transfererc721slist: sentinel," "transfererc20slist: sentinel,"
-    "_ _ _ _: usdt caller broker trade-amount-post-fee," // transfer trade amount of usdt from caller to broker
-    "_ _ _ _: usdt caller ST0x fee," // transfer usdt from caller to ST0x
+    "_ _ _ _: input-token caller broker trade-amount-post-fee," // transfer trade amount of input-token (usdt) from caller to broker
+    "_ _ _ _: input-token caller ST0x fee," // transfer input-token (usdt) from caller to ST0x
     "burnslist: sentinel," "mintslist: sentinel," // burn and mint sentinels
     "_ _: caller output-size,"; // mint flow20 to caller
 
