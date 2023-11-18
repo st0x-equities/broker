@@ -57,9 +57,10 @@ contract CouponExpiryTest is Test, Utils {
         vm.stopPrank();
     }
 
-    function test_mintBeforeCouponExpiry() public {
+    function testFuzz_mintBeforeCouponExpiry(uint256 timestamp) public {
         uint256 couponExpiry  = block.timestamp + 100;
-
+        vm.assume(timestamp < couponExpiry);
+        vm.warp(timestamp);
         address alice = makeAddr("alice");
         
 
