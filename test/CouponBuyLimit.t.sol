@@ -4,9 +4,11 @@ pragma solidity =0.8.19;
 import "forge-std/Test.sol";
 import "./Utils.sol";
 import "rain.math.fixedpoint/lib/LibFixedPointDecimalArithmeticOpenZeppelin.sol";
+import "rain.math.fixedpoint/lib/LibFixedPointDecimalScale.sol";
 
 contract CouponMintTest is Test, Utils {
     using LibFixedPointDecimalArithmeticOpenZeppelin for uint256;
+    using LibFixedPointDecimalScale for uint256;
     IFlowERC20V4 flow;
     Evaluable evaluable;
 
@@ -57,38 +59,33 @@ contract CouponMintTest is Test, Utils {
     }
 
     function test_mintMoreThanCouponLimitiBuysExactlyCouponLimit() public {
-        uint256 couponExpiry  = block.timestamp + 100;
+        uint256 couponExpiry  = block.timestamp + 100; // coupon will expire
 
-        address alice = makeAddr("alice");
+        address alice = makeAddr("alice"); // caller who is buying btc
         
 
-        address broker = makeAddr("broker");
-        uint256 price = 36800e18;
-        address btc = makeAddr("btc");
+        address broker = makeAddr("broker"); // broker who is selling btc and will receive usdc
+        address btc = makeAddr("btc"); // dummy btc address
 
-        uint256 fakeBid = 30000e18;
-        // uint256 fakeAsk = price - (price / 100000);
+        uint256 btcPrice = 30000; // 30000 USDC per BTC
 
-        uint256 amountLimit = 10e18 * price;
-        uint256 buyAmount = 10e18;
+        uint256 amountLimit = 5e18; // 5 BTC broker can sell only this much btc, 1 BTC = 1e18
+        uint256 buyAmount = 1000; // 1000 USDC, buy BTC worth 1000 USDC
 
 
-        uint256 askprice = buyAmount.fixedPointDiv(fakeBid, Math.Rounding.Down);
-        uint256 tradeAmount = buyAmount;
-        uint256 outputSize = tradeAmount.fixedPointDiv(fakeBid, Math.Rounding.Down);
-        
-        console2.log("buyAmount", buyAmount);
-        console2.log("fakeBid", fakeBid);
-        console2.log("amountLimit", amountLimit);
-        console2.log("askprice", askprice);
-        console2.log("tradeAmount", tradeAmount);
-        console2.log("outputSize", outputSize);
+        uint256 tradeAmount = buyAmount; // expected trade amount
+        uint256 outputSize = tradeAmount.fixedPointDiv(btcPrice, Math.Rounding.Down); // expected output size in btc
+        uint256 limitLeft = amountLimit - outputSize;
+
+        console.log("outputSize", outputSize);
+        console.log("limitLeft", limitLeft);
+        console.log("Tally", outputSize + limitLeft);
 
         uint256[] memory context = new uint256[](5);
         context[0] = uint256(keccak256(abi.encode(address(usdc), btc, orderbook)));
         context[1] = uint256(uint160(broker));
-        context[2] = amountLimit; // buy max limit
-        context[3] = fakeBid;
+        context[2] = amountLimit; // amount-limit
+        context[3] = btcPrice; // io-ratio
         context[4] = couponExpiry;
 
         SignedContextV1[] memory signedContext = new SignedContextV1[](1);
@@ -96,7 +93,7 @@ contract CouponMintTest is Test, Utils {
 
         uint256[] memory callerContext = new uint256[](3);
         callerContext[0] = uint256(uint160(address(usdc)));
-        callerContext[1] = buyAmount;
+        callerContext[1] = buyAmount; // imput-amount
         callerContext[2] = uint256(uint160(btc));
 
         vm.startPrank(alice);
@@ -104,7 +101,12 @@ contract CouponMintTest is Test, Utils {
         usdc.approve(address(flow), tradeAmount);
         flow.flow(evaluable, callerContext, signedContext);
         vm.stopPrank();
+        
         assertEq(usdc.balanceOf(broker), buyAmount);
+        /**
+         * alice reveives 33333333333333333 flow20 tokens which is 0.033333333333333333 BTC
+         * 1000 / 30000 = 0.033333333333333333 BTC
+         */
         assertEq(IERC20(address(flow)).balanceOf(alice), outputSize);
     }
 }

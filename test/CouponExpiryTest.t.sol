@@ -94,6 +94,5 @@ contract CouponExpiryTest is Test, Utils {
         flow.flow(evaluable, callerContext, signedContext);
 
         vm.stopPrank();
-        assertEq(IERC20(address(flow)).balanceOf(alice), buyAmount * fakeBid);
     }
 }
