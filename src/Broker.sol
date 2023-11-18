@@ -22,7 +22,7 @@ uint256 constant couponSignerKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbe
 
 address constant orderbook = 0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD;
 
-address constant ST0x = 0x ; //Vish to input, this will be ST0x's wallet for fee collection 
+address constant st0x = 0x36c0903Ad6D564F335333344Fab68ebCf736F629;
 
 bytes constant PRELUDE = "sentinel: 115183058774379759847873638693462432260838474092724525396123647190314935293775," // sentinel value
     "caller: context<0 0>()," // caller address
