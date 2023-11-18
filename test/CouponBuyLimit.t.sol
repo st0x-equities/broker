@@ -1,12 +1,14 @@
 // SPDX-License-Identyfier: Unlicensed
 
 pragma solidity =0.8.19;
+
 import "forge-std/Test.sol";
 import "./Utils.sol";
 
 contract CouponMintTest is Test, Utils {
     using LibFixedPointDecimalArithmeticOpenZeppelin for uint256;
     using LibFixedPointDecimalScale for uint256;
+
     IFlowERC20V4 flow;
     Evaluable evaluable;
 
@@ -18,10 +20,9 @@ contract CouponMintTest is Test, Utils {
     }
 
     function test_buyUnderCouponLimit() public {
-        uint256 couponExpiry  = block.timestamp + 100; // coupon will expire
+        uint256 couponExpiry = block.timestamp + 100; // coupon will expire
 
         address alice = makeAddr("alice"); // caller who is buying btc
-        
 
         address broker = makeAddr("broker"); // broker who is selling btc and will receive usdc
         address btc = makeAddr("btc"); // dummy btc address
@@ -30,7 +31,6 @@ contract CouponMintTest is Test, Utils {
 
         uint256 amountLimit = 5e18; // 5 BTC broker can sell only this much btc, 1 BTC = 1e18
         uint256 buyAmount = 1000; // 1000 USDC, buy BTC worth 1000 USDC
-
 
         uint256 tradeAmount = buyAmount; // expected trade amount
         uint256 outputSize = tradeAmount.fixedPointDiv(btcPrice, Math.Rounding.Down); // expected output size in btc
@@ -56,7 +56,7 @@ contract CouponMintTest is Test, Utils {
         usdc.approve(address(flow), expectedtradeAmount);
         flow.flow(evaluable, callerContext, signedContext);
         vm.stopPrank();
-        
+
         /**
          * broker receives 1000 USDC i.e. 1000 * 1e6 = 1000000000000
          */
@@ -69,10 +69,9 @@ contract CouponMintTest is Test, Utils {
     }
 
     function test_buyBTCAtMaxLimit() public {
-        uint256 couponExpiry  = block.timestamp + 100; // coupon will expire
+        uint256 couponExpiry = block.timestamp + 100; // coupon will expire
 
         address alice = makeAddr("alice"); // caller who is buying btc
-        
 
         address broker = makeAddr("broker"); // broker who is selling btc and will receive usdc
         address btc = makeAddr("btc"); // dummy btc address
@@ -86,7 +85,6 @@ contract CouponMintTest is Test, Utils {
         uint256 outputSize = tradeAmount.fixedPointDiv(btcPrice, Math.Rounding.Down); // expected output size in btc
         uint256 expectedtradeAmount = buyAmount * 1e6;
 
-
         uint256[] memory context = new uint256[](5);
         context[0] = uint256(keccak256(abi.encode(address(usdc), btc, orderbook)));
         context[1] = uint256(uint160(broker));
@@ -107,13 +105,13 @@ contract CouponMintTest is Test, Utils {
         usdc.approve(address(flow), expectedtradeAmount);
         flow.flow(evaluable, callerContext, signedContext);
         vm.stopPrank();
-        
+
         assertEq(usdc.balanceOf(broker), expectedtradeAmount);
         assertEq(IERC20(address(flow)).balanceOf(alice), outputSize);
     }
 
     function test_buyMaxBTCCollectively() public {
-        uint256 couponExpiry  = block.timestamp + 100; // coupon will expire
+        uint256 couponExpiry = block.timestamp + 100; // coupon will expire
 
         address broker = makeAddr("broker"); // broker who is selling btc and will receive usdc
         address btc = makeAddr("btc"); // dummy btc address
@@ -140,9 +138,9 @@ contract CouponMintTest is Test, Utils {
         callerContext[0] = uint256(uint160(address(usdc)));
         callerContext[2] = uint256(uint160(btc));
 
-        for(uint256 i=1; i<=3; i++) {
+        for (uint256 i = 1; i <= 3; i++) {
             buyAmount = i * btcPrice; // 60000 USDC, buy BTC worth 60000 USDC i.e 2BTC
-        
+
             callerContext[1] = buyAmount; // imput-amount
             signedContext[0] = signContext(couponSignerKey, context);
 
@@ -164,10 +162,9 @@ contract CouponMintTest is Test, Utils {
     }
 
     function test_revertToBuyAfterMaxLimit() public {
-        uint256 couponExpiry  = block.timestamp + 100; // coupon will expire
+        uint256 couponExpiry = block.timestamp + 100; // coupon will expire
 
         address alice = makeAddr("alice"); // caller who is buying btc
-        
 
         address broker = makeAddr("broker"); // broker who is selling btc and will receive usdc
         address btc = makeAddr("btc"); // dummy btc address
@@ -180,7 +177,6 @@ contract CouponMintTest is Test, Utils {
         uint256 tradeAmount = buyAmount; // expected trade amount
         uint256 outputSize = tradeAmount.fixedPointDiv(btcPrice, Math.Rounding.Down); // expected output size in btc
         uint256 expectedtradeAmount = buyAmount * 1e6;
-
 
         uint256[] memory context = new uint256[](5);
         context[0] = uint256(keccak256(abi.encode(address(usdc), btc, orderbook)));
@@ -202,7 +198,7 @@ contract CouponMintTest is Test, Utils {
         usdc.approve(address(flow), expectedtradeAmount);
         flow.flow(evaluable, callerContext, signedContext);
         vm.stopPrank();
-        
+
         assertEq(usdc.balanceOf(broker), expectedtradeAmount);
         assertEq(IERC20(address(flow)).balanceOf(alice), outputSize);
 
@@ -215,6 +211,5 @@ contract CouponMintTest is Test, Utils {
 
         assertEq(usdc.balanceOf(broker), expectedtradeAmount);
         assertEq(IERC20(address(flow)).balanceOf(secondBuyer), 0);
-
     }
 }

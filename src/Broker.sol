@@ -39,17 +39,14 @@ bytes constant SIGNED_CONTEXT = "coupon-domain-seperator: context<3 0>()," // do
 
 bytes constant CALLER_CONTEXT = "input-token: context<1 0>()," // taking input token from signedContext
     "input-amount: context<1 1>()," // taking buy amount from callerContext
-    "input-amount-scale18: decimal18-scale18<0>(input-amount),"
-    "output-token: context<1 2>()," // taking output token from signedContext
+    "input-amount-scale18: decimal18-scale18<0>(input-amount)," "output-token: context<1 2>()," // taking output token from signedContext
     "volume-record-key: hash(coupon-domain-seperator coupon-expiry),"; // key for volume record
 
-bytes constant CONDITIONS = 
-    ":ensure<0>(equal-to(signer expected-signer))," // check if context is signed by signer-address
+bytes constant CONDITIONS = ":ensure<0>(equal-to(signer expected-signer))," // check if context is signed by signer-address
     ":ensure<1>(equal-to(coupon-domain-seperator hash(input-token output-token ob)))," // check if coupon-domain-seperator is valid
     ":ensure<2>(less-than(block-timestamp() coupon-expiry)),"; // check if coupon is not expired
 
-bytes constant TRANSFERS = 
-    "asked-amount: int-div(input-amount-scale18 io-ratio),"
+bytes constant TRANSFERS = "asked-amount: int-div(input-amount-scale18 io-ratio),"
     "condition: less-than-or-equal-to(decimal18-add(asked-amount get(volume-record-key)) amount-limit),"
     "trade-amount: if(condition input-amount decimal18-div(decimal18-sub(amount-limit get(volume-record-key)) io-ratio)),"
     // if input amount is less than buy limit, the n trade input amount, else trade buy limit - volume record
