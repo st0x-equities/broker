@@ -8,7 +8,7 @@ import "rain.flow/interface/unstable/IFlowERC20V4.sol";
 import "rain.interpreter/src/interface/unstable/IParserV1.sol";
 import "rain.interpreter/src/interface/unstable/IExpressionDeployerV2.sol";
 import {ECDSAUpgradeable as ECDSA} from "openzeppelin/utils/cryptography/ECDSAUpgradeable.sol";
-import {IERC20Upgradeable as IERC20} from  "openzeppelin/interfaces/IERC20Upgradeable.sol";
+import {IERC20Upgradeable as IERC20} from "openzeppelin/interfaces/IERC20Upgradeable.sol";
 
 struct FlowDeployed {
     IFlowERC20V4 flow;

@@ -6,6 +6,8 @@ import "rain.factory/src/interface/ICloneableFactoryV2.sol";
 import "rain.interpreter/src/interface/IInterpreterV1.sol";
 import "rain.interpreter/src/interface/IInterpreterStoreV1.sol";
 import "../test/contracts/ReserveToken.sol";
+import "rain.math.fixedpoint/lib/LibFixedPointDecimalArithmeticOpenZeppelin.sol";
+import "rain.math.fixedpoint/lib/LibFixedPointDecimalScale.sol";
 
 ICloneableFactoryV2 constant factory = ICloneableFactoryV2(0xAB69D80Cc48763a6EaF38Fd68bE3933782D45507);
 address constant implementation = 0x48FD7faEA344aBDCa8Bea0a85faF8C8740eeCB10;
@@ -37,27 +39,24 @@ bytes constant SIGNED_CONTEXT = "coupon-domain-seperator: context<3 0>()," // do
 
 bytes constant CALLER_CONTEXT = "input-token: context<1 0>()," // taking input token from signedContext
     "input-amount: context<1 1>()," // taking buy amount from callerContext
-    "input-amount-scale18: decimal18-scale18<0>(input-amount),"
-    "output-token: context<1 2>()," // taking output token from signedContext
+    "input-amount-scale18: decimal18-scale18<0>(input-amount)," "output-token: context<1 2>()," // taking output token from signedContext
     "volume-record-key: hash(coupon-domain-seperator coupon-expiry),"; // key for volume record
 
-bytes constant CONDITIONS = 
-    ":ensure<0>(equal-to(signer expected-signer))," // check if context is signed by signer-address
+bytes constant CONDITIONS = ":ensure<0>(equal-to(signer expected-signer))," // check if context is signed by signer-address
     ":ensure<1>(equal-to(coupon-domain-seperator hash(input-token output-token ob)))," // check if coupon-domain-seperator is valid
     ":ensure<2>(less-than(block-timestamp() coupon-expiry)),"; // check if coupon is not expired
 
-bytes constant TRANSFERS = 
-    "asked-amount: int-div(input-amount-scale18 io-ratio),"
-    "condition: less-than(decimal18-add(asked-amount get(volume-record-key)) amount-limit),"
+bytes constant TRANSFERS = "asked-amount: int-div(input-amount-scale18 io-ratio),"
+    "condition: less-than-or-equal-to(decimal18-add(asked-amount get(volume-record-key)) amount-limit),"
     "trade-amount: if(condition input-amount decimal18-div(decimal18-sub(amount-limit get(volume-record-key)) io-ratio)),"
     // if input amount is less than buy limit, the n trade input amount, else trade buy limit - volume record
     "output-size: decimal18-div(trade-amount io-ratio)," // calculate output amount
     "transfererc1155slist: sentinel," "transfererc721slist: sentinel," "transfererc20slist: sentinel,"
-    "_ _ _ _: usdt caller broker trade-amount," // transfer usdt from caller to broker
+    "_ _ _ _: usdt caller broker int-mul(trade-amount 1e6)," // transfer usdt from caller to broker
     "burnslist: sentinel," "mintslist: sentinel," // burn and mint sentinels
     "_ _: caller output-size,"; // mint flow20 to caller
 
-bytes constant POST_TRANSFERS = ":set(volume-record-key decimal18-add(get(volume-record-key) trade-amount));"; // update volume record
+bytes constant POST_TRANSFERS = ":set(volume-record-key decimal18-add(get(volume-record-key) output-size));"; // update volume record
 
 function getFlowScript() pure returns (bytes memory) {
     return bytes.concat(PRELUDE, SIGNED_CONTEXT, CALLER_CONTEXT, CONDITIONS, TRANSFERS, POST_TRANSFERS);
