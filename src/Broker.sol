@@ -22,6 +22,8 @@ uint256 constant couponSignerKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbe
 
 address constant orderbook = 0xBBbbCA6A901c926F240b89EacB641d8Aec7AEafD;
 
+address constant ST0x = 0x ; //Vish to input, this will be ST0x's wallet for fee collection 
+
 bytes constant PRELUDE = "sentinel: 115183058774379759847873638693462432260838474092724525396123647190314935293775," // sentinel value
     "caller: context<0 0>()," // caller address
     "signer: context<2 0>()," // signer address
@@ -51,13 +53,16 @@ bytes constant TRANSFERS =
     "condition: less-than(decimal18-add(asked-amount get(volume-record-key)) amount-limit),"
     "trade-amount: if(condition input-amount decimal18-div(decimal18-sub(amount-limit get(volume-record-key)) io-ratio)),"
     // if input amount is less than buy limit, then trade input amount, else trade buy limit - volume record
-    "output-size: decimal18-div(trade-amount io-ratio)," // calculate output amount
+    "fee: decmial18-mul(trade-amount 2000000000000000)" // calculates the brokers fee
+    "trade-amount-post-fee: decmial18-mul(trade-amount 998000000000000000)"// calculates the trade amount without the fee
+    "output-size: decimal18-div(trade-amount-post-fee io-ratio)," // calculate output amount
     "transfererc1155slist: sentinel," "transfererc721slist: sentinel," "transfererc20slist: sentinel,"
-    "_ _ _ _: usdt caller broker trade-amount," // transfer usdt from caller to broker
+    "_ _ _ _: usdt caller broker trade-amount-post-fee," // transfer trade amount of usdt from caller to broker
+    "_ _ _ _: usdt called ST0x fee" // transfer usdt from caller to ST0x
     "burnslist: sentinel," "mintslist: sentinel," // burn and mint sentinels
     "_ _: caller output-size,"; // mint flow20 to caller
 
-bytes constant POST_TRANSFERS = ":set(volume-record-key decimal18-add(get(volume-record-key) trade-amount));"; // update volume record
+bytes constant POST_TRANSFERS = ":set(volume-record-key decimal18-add(get(volume-record-key) output-size));"; // update volume record in output 
 
 function getFlowScript() pure returns (bytes memory) {
     return bytes.concat(PRELUDE, SIGNED_CONTEXT, CALLER_CONTEXT, CONDITIONS, TRANSFERS, POST_TRANSFERS);
