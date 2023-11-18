@@ -8,6 +8,7 @@ import "./Utils.sol";
 contract DeployTest is Test, Utils {
     IFlowERC20V4 flow20;
     Evaluable evalueable;
+
     function test_deploy() public {
         setMumbaiFork();
         FlowDeployed memory flowDeployed = deploy();
@@ -15,4 +16,3 @@ contract DeployTest is Test, Utils {
         assertNotEq(address(flow20), address(0));
     }
 }
- 
