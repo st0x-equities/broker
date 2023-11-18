@@ -8,7 +8,7 @@ import "rain.flow/interface/unstable/IFlowERC20V4.sol";
 import "rain.interpreter/src/interface/unstable/IParserV1.sol";
 import "rain.interpreter/src/interface/unstable/IExpressionDeployerV2.sol";
 import {ECDSAUpgradeable as ECDSA} from "openzeppelin/utils/cryptography/ECDSAUpgradeable.sol";
-import {IERC20Upgradeable as IERC20} from  "openzeppelin/interfaces/IERC20Upgradeable.sol";
+import {IERC20Upgradeable as IERC20} from "openzeppelin/interfaces/IERC20Upgradeable.sol";
 
 struct FlowDeployed {
     IFlowERC20V4 flow;
@@ -24,6 +24,7 @@ contract Utils is Test {
         vm.label(address(usdc), "usdc");
         vm.label(couponSigner, "couponSigner");
         vm.label(orderbook, "orderbook");
+        vm.label(st0x, "st0x");
     }
 
     function deploy() public returns (FlowDeployed memory) {

@@ -1,11 +1,12 @@
 // SPDX-License_Identyfier: Unlicensed
 
 pragma solidity =0.8.19;
+
 import "forge-std/Test.sol";
 import "./Utils.sol";
 import "rain.math.fixedpoint/lib/LibFixedPointDecimalArithmeticOpenZeppelin.sol";
+
 contract CouponExpiryTest is Test, Utils {
-    
     IFlowERC20V4 flow;
     Evaluable evaluable;
 
@@ -17,11 +18,10 @@ contract CouponExpiryTest is Test, Utils {
     }
 
     function test_revertBuyAfterCouponExpiry() public {
-        uint256 couponExpiry  = block.timestamp + 100;
+        uint256 couponExpiry = block.timestamp + 100;
         vm.warp(couponExpiry + 10);
 
         address alice = makeAddr("alice");
-        
 
         address broker = makeAddr("broker");
         uint256 price = 1 ether;
@@ -57,11 +57,11 @@ contract CouponExpiryTest is Test, Utils {
         vm.stopPrank();
     }
 
-    function test_mintBeforeCouponExpiry() public {
-        uint256 couponExpiry  = block.timestamp + 100;
-
+    function testFuzz_mintBeforeCouponExpiry(uint256 timestamp) public {
+        uint256 couponExpiry = block.timestamp + 100;
+        vm.assume(timestamp < couponExpiry);
+        vm.warp(timestamp);
         address alice = makeAddr("alice");
-        
 
         address broker = makeAddr("broker");
         uint256 price = 1 ether;
