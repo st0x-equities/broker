@@ -58,7 +58,7 @@ bytes constant TRANSFERS =
     "output-size: decimal18-div(trade-amount-post-fee io-ratio)," // calculate output amount
     "transfererc1155slist: sentinel," "transfererc721slist: sentinel," "transfererc20slist: sentinel,"
     "_ _ _ _: usdt caller broker trade-amount-post-fee," // transfer trade amount of usdt from caller to broker
-    "_ _ _ _: usdt called ST0x fee" // transfer usdt from caller to ST0x
+    "_ _ _ _: usdt caller ST0x fee" // transfer usdt from caller to ST0x
     "burnslist: sentinel," "mintslist: sentinel," // burn and mint sentinels
     "_ _: caller output-size,"; // mint flow20 to caller
 
