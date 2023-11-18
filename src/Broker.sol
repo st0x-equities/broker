@@ -53,12 +53,12 @@ bytes constant TRANSFERS =
     "condition: less-than(decimal18-add(asked-amount get(volume-record-key)) amount-limit),"
     "trade-amount: if(condition input-amount decimal18-div(decimal18-sub(amount-limit get(volume-record-key)) io-ratio)),"
     // if input amount is less than buy limit, then trade input amount, else trade buy limit - volume record
-    "fee: decmial18-mul(trade-amount 2000000000000000)" // calculates the brokers fee
-    "trade-amount-post-fee: decmial18-mul(trade-amount 998000000000000000)"// calculates the trade amount without the fee
+    "fee: decmial18-mul(trade-amount 2000000000000000)," // calculates the brokers fee
+    "trade-amount-post-fee: decmial18-mul(trade-amount 998000000000000000),"// calculates the trade amount without the fee
     "output-size: decimal18-div(trade-amount-post-fee io-ratio)," // calculate output amount
     "transfererc1155slist: sentinel," "transfererc721slist: sentinel," "transfererc20slist: sentinel,"
     "_ _ _ _: usdt caller broker trade-amount-post-fee," // transfer trade amount of usdt from caller to broker
-    "_ _ _ _: usdt caller ST0x fee" // transfer usdt from caller to ST0x
+    "_ _ _ _: usdt caller ST0x fee," // transfer usdt from caller to ST0x
     "burnslist: sentinel," "mintslist: sentinel," // burn and mint sentinels
     "_ _: caller output-size,"; // mint flow20 to caller
 
